@@ -16,6 +16,9 @@ This module allows
 * sending mail locally from one user to the other going outside
 * Mail must be delivered in to $HOME/Maildir of each user (for squirrelmail)
 * It must be possible to send E-Mail to an external server
+* it must be possible to receive external mail via fetchmail to the local domain
+* it must be possible to receive external mail via imap from a remote server
+* it must be possible to receive external mail via pop from a remote server
 * TODO: It must be possible to send E-Mail via HIN (if the receiver has a HIN email address)
 * TODO: It must be possible to receive Mail via HIN
 
