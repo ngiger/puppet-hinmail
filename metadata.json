@@ -1,0 +1,26 @@
+{
+  "name": "ngiger-hinmail",
+  "version": "0.1.0",
+  "author": "ngiger",
+  "summary": "Setup HIN-Mail for Elexis",
+  "license": "GPL",
+  "source": "https://github.com/ngiger/puppet-hinmail",
+  "project_page": "https://github.com/ngiger/puppet-hinmail",
+  "issues_url": "https://github.com/ngiger/puppet-hinmail/issues",
+  "description": "Module for HINMail server",
+  "dependencies": [
+    {
+      "name": "puppetlabs/stdlib",
+      "version_requirement": ">= 2.4.0"
+    },
+    {
+      "name": "puppetlabs/apache",
+      "version_requirement": ">= 1.0.0"
+    },
+    {
+      "name": "puppetlabs/concat",
+      "version_requirement": ">= 1.0.0"
+    }
+  ]
+}
+

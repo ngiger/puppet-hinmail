@@ -1,0 +1,37 @@
+h2. hinmail
+
+h3. Overview
+
+A small puppet module tailored for elexis admin which helps to install
+
+* fetchmail     (Allows to fetch mail from an ISP)
+* exim4         (MTA Mail Transfer Agent, responsible for sending the mails)
+* courier-imap  (as an IMAP server)
+* squirrelmail  (for Web-Mail)
+
+h3. Module Description
+
+This module allows
+
+* sending mail locally from one user to the other going outside
+* Mail must be delivered in to $HOME/Maildir of each user (for squirrelmail)
+* It must be possible to send E-Mail to an external server
+* TODO: It must be possible to send E-Mail via HIN (if the receiver has a HIN email address)
+* TODO: It must be possible to receive Mail via HIN
+
+Hiera variables define
+* action for fetchmailrc
+* additional entries for /etc/aliases
+* user/password for sending to ISP
+
+h3. Setup
+
+h4. Setup Requirements
+
+Only tested under Debian Wheezy
+
+
+h4. Example
+
+include 'hinmail'
+
