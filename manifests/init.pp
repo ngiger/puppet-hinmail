@@ -34,22 +34,30 @@
 #
 notify{"hinmail ensure $hinmail::ensure server $servers": }
 class hinmail(
-  $ensure      = absent,
-  $packages    = ['exim4-daemon-light', 'exim4-config', 'courier-imap', 'squirrelmail', 'squirrelmail-locales'],
-  $fetchmailrc_lines = [],
-  $mail_aliases      = { 'admin' => 'gyong' }
+  $ensure             = false,
+  $packages           = ['exim4-base', 'exim4-config', 'courier-imap', 'squirrelmail', 'squirrelmail-locales'],
+  $fetchmailrc_lines  = [],
+  $mail_aliases       = { 'admin' => 'root' },
+  $exim               = { 
+    'configtype'      => 'local', # or internet
+    'other_hostnames' => 'dummy.org', # local host name,  defaults to the domain_name
+    'local_interfaces'=> '127.0.0.1 ; ::1', # or '0.0.0.0' to listen on all interfaces, 127.0.0.1 does not listen to external interfaces
+    'relay_nets'      => '', #  a network mask, e.g 192.168.1.0/24
+    'connection_type' => 'local', # or internet
+    'localdelivery'   => 'maildir_home', # or mail_spool for mailbox in /var/mail
+  },
 ) {
 	$servers        = hiera('server_names', [])
 	if (member($servers, $hostname)) {
 		notify{"hinmail needs $hinmail::ensure server $servers": }
 	}
 
-  if ($ensure != absent) {
+  if ($ensure != absent and $ensure != false) {
+    notify{"HINMAIL ensure $ensure with $packages": }
     ensure_packages($packages)
     class { 'apache':  
        mpm_module => 'prefork',
     }
-    $exim = hiera('exim', {})
     class { 'apache::mod::php': }
     if (member($packages, 'squirrelmail') and defined(Class['apache'])) {
       file{'/etc/apache2/conf.d/squirrelmail.conf':
@@ -90,12 +98,12 @@ $lines
     add_aliases{$mail_aliases:}
     # ensure_resource('service', "$::apache::params::service_name", { ensure => running } )
   } else {
+    notify{"HINMAIL FALSE ensure $ensure with $packages absent": }
     ensure_packages($packages, { ensure => absent } )
   }
 
   
   define add_alias($username) {
-    notify{"add_alias $username": }
     file_line {"set_alias_${title}_${username}":
       path  => '/etc/aliases',
       line  => "${title}: $username",

@@ -29,4 +29,29 @@ describe 'hinmail' do
     it { should_not contain_package('fetchmail')}
     it { should_not contain_file('/etc/fetchmailrc')}    
   end
+
+  context 'when running with mail_aliases' do
+    let(:params) { { :ensure => true, :mail_aliases => { 'abuse' => 'root', 'backup' => 'root'} }}
+    it { should compile }
+    it { should compile.with_all_deps }
+    it { should contain_file_line('set_alias_add_alias-{"abuse"=>"root", "backup"=>"root"}_{"abuse"=>"root", "backup"=>"root"}') }        
+  end
+  
+  context 'when running with exim' do
+    let(:params) { { :ensure => true,
+                     :exim => {
+                               'configtype'       => 'internet',
+                               'other_hostnames'  => 'mustermann.org',
+                               'local_interfaces' => '0.0.0.0',
+                               'relay_nets'       => '192.168.1.0/24',
+                              }
+                   }}
+    it { should compile }
+    it { should compile.with_all_deps }
+    it { should contain_file('/etc/exim4/update-exim4.conf.conf'). with_content(/dc_eximconfig_configtype='internet'/)}
+    it { should contain_file('/etc/exim4/update-exim4.conf.conf'). with_content(/dc_other_hostnames='mustermann.org'/)}
+    it { should contain_file('/etc/exim4/update-exim4.conf.conf'). with_content(/local_interfaces='0.0.0.0'/)}
+    it { should contain_file('/etc/exim4/update-exim4.conf.conf'). with_content(/dc_relay_nets='192.168.1.0\/24'/)}
+  end
+  
 end
