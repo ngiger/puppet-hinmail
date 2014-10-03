@@ -1,0 +1,11 @@
+# run once rake spec_prep
+# run often (avoiding download) rake spec_standalone
+fixtures:
+  forge_modules:
+      stdlib:
+          repo: "puppetlabs/stdlib"
+          ref: "4.3.2"
+      apache: "puppetlabs/apache"
+      concat: "puppetlabs/concat"
+  symlinks:
+    hinmail: "#{source_dir}"

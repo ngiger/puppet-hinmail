@@ -1,46 +1,50 @@
 # == Class: hinmail
 #
-# Full description of class hinmail here.
+# A puppet module for receiving and send mail (also via HIN.ch) for the elexis-admin project
+# See https://github.com/ngiger/elexis-admin/wiki
 #
 # === Parameters
 #
 # Document parameters here.
 #
-# [*sample_parameter*]
-#   Explanation of what this parameter affects and what it defaults to.
-#   e.g. "Specify one or more upstream ntp servers as an array."
+# [*fetchmailrc_lines*]
+#   If not empty, fetchmail is installed and /etc/fetchmailrc is filled with its values
+#   Allows you to fetch mail from an external mail server
+# [*aliases*]
+#   aliases to be added to /etc/aliases. Existing entries not mentioned here will not be touched.
 #
 # === Variables
 #
-# Here you should define a list of variables that this module would require.
 #
-# [*sample_variable*]
-#   Explanation of how this variable affects the funtion of this class and if
-#   it has a default. e.g. "The parameter enc_ntp_servers must be set by the
-#   External Node Classifier as a comma separated list of hostnames." (Note,
-#   global variables should be avoided in favor of class parameters as
-#   of Puppet 2.6.)
 #
 # === Examples
 #
 #  class { hinmail:
-#    servers => [ 'pool.ntp.org', 'ntp.local.company.com' ],
+#    fetchmailrc_lines => [ 'poll mail.example.com with proto POP3',  "user 'john@example.com' there with password 'topsecrect' is johnny here" ],
+#    aliases           => { 'postmaster' => 'root', 'root' => 'niklaus' }
 #  }
 #
 # === Authors
 #
-# Author Name <author@domain.com>
+# Niklaus Giger <niklaus.giger@member.fsf.org>
 #
 # === Copyright
 #
-# Copyright 2014 Your name here, unless otherwise noted.
+# Copyright 2014 Niklaus Giger
 #
+notify{"hinmail ensure $hinmail::ensure server $servers": }
 class hinmail(
-  $ensure      = "present",
-  $packages    = ['fetchmail', 'exim4-daemon-light', 'exim4-config', 'courier-imap', 'squirrelmail', 'squirrelmail-locales'],
-  $fetchmailrc_lines = [ "# Some dummy content, which should be replaced by hieradata" ],
+  $ensure      = absent,
+  $packages    = ['exim4-daemon-light', 'exim4-config', 'courier-imap', 'squirrelmail', 'squirrelmail-locales'],
+  $fetchmailrc_lines = [],
+  $mail_aliases      = { 'admin' => 'gyong' }
 ) {
-  if ($ensure == "present") {
+	$servers        = hiera('server_names', [])
+	if (member($servers, $hostname)) {
+		notify{"hinmail needs $hinmail::ensure server $servers": }
+	}
+
+  if ($ensure != absent) {
     ensure_packages($packages)
     class { 'apache':  
        mpm_module => 'prefork',
@@ -52,7 +56,7 @@ class hinmail(
         ensure => link,
         target => '/etc/squirrelmail/apache.conf',
         require => Class['apache::mod::php'],
-        notify => Service[$::apache::params::service_name],
+#        notify => Service[$::apache::params::service_name],
       }
     }
     if (member($packages, 'exim4-config') ) {
@@ -62,7 +66,8 @@ class hinmail(
       }   
     }
 
-    if (member($packages, 'fetchmail') ) {
+    if ($fetchmailrc_lines != [] ) {
+      ensure_packages('fetchmail')
       service{'fetchmail': } # ensure => running, provider => debian, }
       file{'/etc/default/fetchmail':
         ensure => present,
@@ -72,7 +77,7 @@ START_DAEMON=yes
         require => Package['fetchmail'],
       }
 
-      $lines = join($hinmail::fetchmailrc_lines, "\n")
+      $lines = join($fetchmailrc_lines, "\n")
       file{'/etc/fetchmailrc':
         ensure => present,
         content => "#Managed by puppet hinmail
@@ -81,10 +86,24 @@ $lines
         require => Package['fetchmail'],
         notify => Service['fetchmail'],
       }
-   }    
+    }    
+    add_aliases{$mail_aliases:}
+    # ensure_resource('service', "$::apache::params::service_name", { ensure => running } )
   } else {
     ensure_packages($packages, { ensure => absent } )
   }
-}
 
   
+  define add_alias($username) {
+    notify{"add_alias $username": }
+    file_line {"set_alias_${title}_${username}":
+      path  => '/etc/aliases',
+      line  => "${title}: $username",
+#      match => '^${title}:',
+    }
+  }
+  define add_aliases() {
+    add_alias{"add_alias-$title": username => $title}
+  }
+}
+
