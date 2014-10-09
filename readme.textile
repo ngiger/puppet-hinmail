@@ -6,8 +6,13 @@ A small puppet module tailored for elexis admin which helps to install
 
 * fetchmail     (Allows to fetch mail from an ISP)
 * exim4         (MTA Mail Transfer Agent, responsible for sending the mails)
-* courier-imap  (as an IMAP server)
+* dovecot       (as an IMAP server)
 * squirrelmail  (for Web-Mail)
+
+Maybe we should have a look at  http://t-machine.org/index.php/2014/06/27/webmail-on-your-debian-server-exim4-dovecot-roundcube/
+**    NOT using: Postfix (slightly less common than exim?)
+**    NOT using: Courier (WAY harder to configure/debug than Dovecot)
+**    NOT using: Squirrel (ugly, hard to use), Horde (WAY too complicated for webmail) 
 
 h3. Module Description
 

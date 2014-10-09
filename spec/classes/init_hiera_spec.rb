@@ -8,7 +8,7 @@ describe 'hinmail' do
     it { should compile }
     it { should compile.with_all_deps }
     it { should create_class('hinmail')}
-    it { should contain_package('courier-imap')}
+    it { should contain_package('dovecot-imapd')}
     it { should contain_package('exim4-config')}
     it { should contain_package('exim4-daemon-light')}
     it { should contain_package('squirrelmail-locales')}
@@ -25,7 +25,7 @@ describe 'hinmail' do
     it { should compile }
     it { should compile.with_all_deps }
     it { should create_class('hinmail')}
-    it { should contain_package('courier-imap')}
+    it { should contain_package('dovecot-imapd')}
     it { should contain_package('exim4-config')}
     it { should contain_package('exim4-daemon-light')}
     it { should contain_package('squirrelmail-locales')}

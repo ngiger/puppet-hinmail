@@ -35,15 +35,22 @@
 notify{"hinmail ensure $hinmail::ensure server $servers": }
 class hinmail(
   $ensure             = false,
-  $packages           = ['exim4-base', 'exim4-config', 'courier-imap', 'squirrelmail', 'squirrelmail-locales'],
+  $packages           = [
+  'exim4-base', 'exim4-config', 'exim4-daemon-light',
+  'dovecot-imapd', 'dovecot-sqlite', 'dovecot-antispam',
+  'squirrelmail', 'squirrelmail-locales', 'squirrelmail-decode',
+# roundcube, # seems to have a much modern aspect, but for me it is more difficult to configure at the moment
+  ],
   $fetchmailrc_lines  = [],
   $mail_aliases       = { 'admin' => 'root' },
   $exim               = { 
     'configtype'      => 'local', # or internet
-    'other_hostnames' => 'dummy.org', # local host name,  defaults to the domain_name
+    'other_hostnames' => [], # is   used   to  build  the  local_domains  list,  together  with
+              # “localhost”.  This is the list of domains for which this machine
+              # should  consider itself the final destination. The local_domains
+              # list ends up in the macro MAIN_LOCAL_DOMAINS.
     'local_interfaces'=> '127.0.0.1 ; ::1', # or '0.0.0.0' to listen on all interfaces, 127.0.0.1 does not listen to external interfaces
     'relay_nets'      => '', #  a network mask, e.g 192.168.1.0/24
-    'connection_type' => 'local', # or internet
     'localdelivery'   => 'maildir_home', # or mail_spool for mailbox in /var/mail
   },
 ) {
@@ -51,10 +58,19 @@ class hinmail(
 	if (member($servers, $hostname)) {
 		notify{"hinmail needs $hinmail::ensure server $servers": }
 	}
-
   if ($ensure != absent and $ensure != false) {
     notify{"HINMAIL ensure $ensure with $packages": }
+    require apt
+    class {"apt::backports": pin_priority  => 500 }
+#    package{['roundcube', 'roundcube-sqlite3', 'roundcube-plugins']: ensure => latest }
     ensure_packages($packages)
+    $dovecot_mail_conf = '/etc/dovecot/conf.d/10-mail.conf'
+    file{$dovecot_mail_conf:
+      content => template("hinmail/dovecot_mail_conf.erb"),
+      notify  => Exec['dpkg-reconfigure-exim4-config'],
+      require => Package['dovecot-imapd'],
+    }   
+
     class { 'apache':  
        mpm_module => 'prefork',
     }
@@ -68,9 +84,13 @@ class hinmail(
       }
     }
     if (member($packages, 'exim4-config') ) {
+        exec{'dpkg-reconfigure-exim4-config':
+          command => '/usr/sbin/dpkg-reconfigure exim4-config',
+        }
       $conf_file = '/etc/exim4/update-exim4.conf.conf'
       file{$conf_file:
         content => template("hinmail/update-exim4.conf.conf.erb"),
+        notify => Exec['dpkg-reconfigure-exim4-config'],
       }   
     }
 
