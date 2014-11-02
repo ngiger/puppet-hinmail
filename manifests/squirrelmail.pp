@@ -21,7 +21,7 @@ class hinmail::squirrelmail(
         require => Package['nginx'],
       }
 
-    ensure_packages(['nginx'], { ensure => present })
+    ensure_packages(['nginx', 'squirrelmail'], { ensure => present })
     file {"/etc/nginx/sites-available/${domain_name}.vhost":
       ensure  => present,
       mode    => '0644',

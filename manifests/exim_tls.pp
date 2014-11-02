@@ -46,28 +46,30 @@ $org_name
 $org_unit
 $fqdn
 $email
-"
+",
     }
     exec{'/etc/exim4/exim.crt':
       command => "/bin/cat ${info_file} | /usr/share/doc/exim4-base/examples/exim-gencert --force; adduser Debian-exim sasl",
       creates => '/etc/exim4/exim.crt',
-      require => File[$info_file],
+      subscribe => File[$info_file],
+      notify => Exec['/etc/exim4/exim.pem'],
     }
     # create a default certificate for the next 10 years
     exec{'/etc/exim4/exim.pem':      
       command => "/bin/cat ${info_file} | /usr/bin/openssl req -new -x509 -days 3650 -nodes -out /etc/exim4/exim.pem -keyout /etc/exim4/exim.key",
       creates => '/etc/exim4/exim.pem',
-      require => File[$info_file],
+      subscribe => File[$info_file],
       notify  => Exec['update_exim4'],
     }
     file{'/etc/exim4/exim4.conf.localmacros':
       content => 'MAIN_TLS_ENABLE = yes
 ',
-        notify => Exec['update_exim4'],
+      notify => Exec['update_exim4'],
     }
     exec{'update_exim4':
-      command => '/usr/sbin/update-exim4.conf && /etc/init.d/exim4 restart',
-      require => Packages['sasl2-bin','exim4-config'],
+      command => '/usr/sbin/update-exim4.conf && /etc/init.d/exim4 restart && /usr/bin/touch /var/cache/ran_update_exim4',
+      creates => '/var/cache/ran_update_exim4',
+      subscribe  => [ File['/etc/exim4/exim4.conf.localmacros'], Exec['/etc/exim4/exim.pem'] ],
     }
     file{'/etc/exim4/conf.d/auth/30_exim4-config_puppet':
       content => '
