@@ -9,6 +9,8 @@
 # == Class: hinmail::exim_tls
 #
 # Add support for TLS (creating certifcate) and sasl TLS_and_Authentication
+# To see the cleartext of the generate exim.pem call openssl x509 -in /etc/exim4/exim.pem  -text
+# To test how the routing is done via exim use sudo exim -bt vagrant@localhost
 #
 # === Parameters
 #
@@ -26,12 +28,12 @@
 class hinmail::exim_tls(
   $ensure             = false,
   $packages           = [ 'sasl2-bin', ],
-  $country_code       = 'CH',
-  $province           = '',
-  $locality           = 'Mollis',
-  $org_name           = '',
-  $org_unit           = '',
-  $email              = '',
+  $country_code       = 'XX',
+  $province           = '.', # '.' will give an empty string
+  $locality           = 'unknown',
+  $org_name           = '.', # '.' will give an empty string
+  $org_unit           = '.', # '.' will give an empty string
+  $email              = '.', # '.' will give an empty string
 ) {
   if ($ensure != absent and $ensure != false) {
     ensure_packages($packages)
