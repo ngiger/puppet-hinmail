@@ -7,12 +7,14 @@ describe 'hinmail' do
     it { should compile.with_all_deps }
 #    it { should have_resource_count(9) }
     it { should contain_hinmail }
+    if false
     it { should contain_package('dovecot-imapd').with_ensure('absent')}
     it { should contain_package('dovecot-sqlite').with_ensure('absent')}
     it { should contain_package('exim4-config').with_ensure('absent')}
     it { should contain_package('exim4-daemon-light').with_ensure('absent')}
     it { should contain_package('squirrelmail-locales').with_ensure('absent')}
     it { should contain_package('squirrelmail').with_ensure('absent')}
+    end
     it { should_not contain_package('fetchmail')}
     it { should_not contain_file('/etc/fetchmailrc')}    
   end
