@@ -1,4 +1,5 @@
 # Install nginx for webmail access	 to an squirrelmail
+# we should probably better use https://forge.puppetlabs.com/jfryman/nginx
 #
 # === Examples:
 #
@@ -32,19 +33,23 @@ class hinmail::squirrelmail(
       mode    => '0644',
       target => "/etc/nginx/sites-available/${domain_name}.vhost",
       require => Package['nginx'],
+      notify  => Service["nginx"],
     }
     file {'/etc/nginx/sites-available/squirrelmail.conf':
       content => template('hinmail/squirrel_mail_conf.erb'),
+      notify  => Service["nginx"],
     }    
     file {"/etc/nginx/sites-enabled/squirrelmail.conf":
       ensure  => link,
       mode    => '0644',
       target => "/etc/nginx/sites-available/squirrelmail.conf",
       require => Package['nginx'],
+      notify  => Service["nginx"],
     }
     file {'/etc/squirrelmail/config.php':
       content => template('hinmail/config.php.erb'),
       require => Package['squirrelmail'],
+      notify  => Service["nginx"],
     }
   } else {
     file { [ "/etc/nginx/sites-available/squirrelmail.conf",

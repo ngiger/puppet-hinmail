@@ -33,6 +33,7 @@
 # Copyright 2014 Niklaus Giger
 #
 notify{"hinmail ensure $hinmail::ensure server $servers": }
+require apache::params
 class hinmail(
   $ensure             = false,
   $packages           = [
@@ -71,8 +72,12 @@ class hinmail(
       require => Package['dovecot-imapd'],
     }   
 
-    class { 'apache':  
-       mpm_module => 'prefork',
+    if (false) { # use apache
+    require apache::params
+    class { 'apache':
+        default_mods        => false,
+        default_confd_files => false,
+        mpm_module => 'prefork',
     }
     class { 'apache::mod::php': }
     if (member($packages, 'squirrelmail') and defined(Class['apache'])) {
@@ -82,6 +87,9 @@ class hinmail(
         require => Class['apache::mod::php'],
 #        notify => Service[$::apache::params::service_name],
       }
+    }
+    } else {
+      # use nginx
     }
     if (member($packages, 'exim4-config') ) {
         exec{'dpkg-reconfigure-exim4-config':
@@ -116,10 +124,9 @@ $lines
       }
     }    
     add_aliases{$mail_aliases:}
-    # ensure_resource('service', "$::apache::params::service_name", { ensure => running } )
   } else {
-    notify{"HINMAIL FALSE ensure $ensure with $packages absent": }
-    ensure_packages($packages, { ensure => absent } )
+    notify{"Hinmail ensure $ensure with $packages absent": }
+#    ensure_packages($packages, { ensure => absent } )
   }
 
   

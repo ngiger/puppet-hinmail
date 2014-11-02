@@ -58,9 +58,19 @@ $email
       command => "/bin/cat ${info_file} | /usr/bin/openssl req -new -x509 -days 3650 -nodes -out /etc/exim4/exim.pem -keyout /etc/exim4/exim.key",
       creates => '/etc/exim4/exim.pem',
       require => File[$info_file],
+      notify  => Exec['update_exim4'],
     }
     file{'/etc/exim4/exim4.conf.localmacros':
       content => 'MAIN_TLS_ENABLE = yes
+',
+        notify => Exec['update_exim4'],
+    }
+    exec{'update_exim4':
+      command => '/usr/sbin/update-exim4.conf && /etc/init.d/exim4 restart',
+      require => Packages['sasl2-bin','exim4-config'],
+    }
+    file{'/etc/exim4/conf.d/auth/30_exim4-config_puppet':
+      content => '
 plain_saslauthd_server:
   driver = plaintext
   public_name = PLAIN
@@ -71,7 +81,7 @@ plain_saslauthd_server:
     server_advertise_condition = ${if eq{$tls_cipher}{}{}{*}}
   .endif
 ',
-#        notify => Exec['dpkg-reconfigure-exim4-config'],
+        notify => Exec['update_exim4'],
     }
   }  
 }

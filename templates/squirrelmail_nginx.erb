@@ -1,4 +1,5 @@
 # -*- mode: nginx; mode: flyspell-prog;  ispell-local-dictionary: "american" -*-
+# Copyright 2014 by Niklaus Giger niklaus.giger@member.fsf.org
 # managed by puppet elexis-hinmail
 # from  https://github.com/perusio/squirrelmail-nginx/tree/master/sites-available
 
@@ -14,11 +15,11 @@ server {
     server_name <%= @fqdn %>;
 
     ## Server certificate and key.
-    ssl_certificate /etc/ssl/certs/webmail.example.com-cert.pem;
-    ssl_certificate_key /etc/ssl/private/webmail.example.com-key.pem;
+    ssl_certificate /etc/ssl/certs/<%= @domain %>-cert.pem;
+    ssl_certificate_key /etc/ssl/private/<%= @domain %>-key.pem;
 
     ## Use only HTTPS.
-    return 301 https://webmail.example.com$request_uri;
+    return 301 https://<%= @domain %>$request_uri;
 
 } # server domain rewrite.
 
@@ -29,18 +30,18 @@ server {
     listen [fe80::202:b3ff:fe1e:8329]:443 ssl ipv6only=on;
 
     limit_conn arbeit 32;
-    server_name webmail.example.com;
+    server_name <%= @domain %>;
 
     ## Keep alive timeout set to a greater value for SSL/TLS.
     keepalive_timeout 75 75;
 
     ## Parameterization using hostname of access and log filenames.
-    access_log /var/log/nginx/webmail.example.com_access.log;
-    error_log /var/log/nginx/webmail.example.com_error.log;
+    access_log /var/log/nginx/<%= @domain %>_access.log;
+    error_log /var/log/nginx/<%= @domain %>_error.log;
 
     ## Server certificate and key.
-    ssl_certificate /etc/ssl/certs/webmail.example.com-cert.pem;
-    ssl_certificate_key /etc/ssl/private/webmail.example.com-key.pem;
+    ssl_certificate /etc/ssl/certs/<%= @domain %>-cert.pem;
+    ssl_certificate_key /etc/ssl/private/<%= @domain %>-key.pem;
 
     ## Strict Transport Security header for enhanced security. See
     ## http://www.chromium.org/sts.
@@ -55,7 +56,7 @@ server {
     }
 
     ## Root and index files.
-    root /var/www/sites/webmail.example.com;
+    root /var/www/sites/<%= @domain %>;
     index index.php index.html;
 
     ## Include the squirrelmail configuration.
