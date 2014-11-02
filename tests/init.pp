@@ -9,4 +9,11 @@
 # Learn more about module testing here:
 # http://docs.puppetlabs.com/guides/tests_smoke.html
 #
-class {'hinmail': ensure => true}
+class {'hinmail': ensure => true,  mail_aliases =>  {
+    item1 => { username  => 'realname',
+               aliasname => 'alias',},
+    item2 => { username      => 'new_username2',
+               aliasname => 'b' },
+  }
+}
+

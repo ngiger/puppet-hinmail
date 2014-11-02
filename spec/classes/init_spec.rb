@@ -16,7 +16,7 @@ describe 'hinmail' do
     it { should contain_package('squirrelmail').with_ensure('absent')}
     end
     it { should_not contain_package('fetchmail')}
-    it { should_not contain_file('/etc/fetchmailrc')}    
+    it { should_not contain_file('/etc/fetchmailrc')}
   end
 
   context 'when running with ensure' do
@@ -29,19 +29,20 @@ describe 'hinmail' do
     it { should contain_package('exim4-config')}
     it { should contain_package('exim4-daemon-light')}
     it { should contain_package('squirrelmail-locales')}
-    it { should contain_package('squirrelmail')} 
+    it { should contain_package('squirrelmail')}
     it { should_not contain_package('fetchmail')}
     it { should_not contain_file('/etc/fetchmailrc')}
-    it { should contain_file('/etc/dovecot/conf.d/10-mail.conf').with_content(/^mail_location = maildir:/)}    
+    it { should contain_file('/etc/dovecot/conf.d/10-mail.conf').with_content(/^mail_location = maildir:/)}
   end
 
   context 'when running with mail_aliases' do
-    let(:params) { { :ensure => true, :mail_aliases => { 'abuse' => 'root', 'backup' => 'root'} }}
+    let(:params) { { :ensure => true, :mail_aliases =>  { 'first' => { 'username' => 'admin', 'aliasname' => 'abuse'}, 'second' => { 'username' => 'admin', 'aliasname' => 'backup'} } } }
     it { should compile }
     it { should compile.with_all_deps }
-    it { should contain_file_line('set_alias_add_alias-{"abuse"=>"root", "backup"=>"root"}_{"abuse"=>"root", "backup"=>"root"}') }        
+    it { should contain_file_line('set_alias_first_admin') }
+    it { should contain_file_line('set_alias_second_admin') }
   end
-  
+
   context 'when running with exim' do
     let(:params) { { :ensure => true,
                      :exim => {
@@ -58,5 +59,5 @@ describe 'hinmail' do
     it { should contain_file('/etc/exim4/update-exim4.conf.conf'). with_content(/local_interfaces='0.0.0.0'/)}
     it { should contain_file('/etc/exim4/update-exim4.conf.conf'). with_content(/dc_relay_nets='192.168.1.0\/24'/)}
   end
-  
+
 end

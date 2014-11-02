@@ -21,7 +21,7 @@
 #
 #  class { hinmail:
 #    fetchmailrc_lines => [ 'poll mail.example.com with proto POP3',  "user 'john@example.com' there with password 'topsecrect' is johnny here" ],
-#    aliases           => { 'postmaster' => 'root', 'root' => 'niklaus' }
+#    mail_aliases       = { 'first' => { username => 'new_username', aliasname => 'myAlias'} },
 #  }
 #
 # === Authors
@@ -33,7 +33,6 @@
 # Copyright 2014 Niklaus Giger
 #
 notify{"hinmail ensure $hinmail::ensure server $servers": }
-require apache::params
 class hinmail(
   $ensure             = false,
   $packages           = [
@@ -43,8 +42,8 @@ class hinmail(
 # roundcube, # seems to have a much modern aspect, but for me it is more difficult to configure at the moment
   ],
   $fetchmailrc_lines  = [],
-  $mail_aliases       = { 'admin' => 'root' },
-  $exim               = { 
+  $mail_aliases       = {}, # { 'first' => { username => 'new_username', aliasname => 'myAlias'} },
+  $exim               = {
     'configtype'      => 'local', # or internet
     'other_hostnames' => [], # is   used   to  build  the  local_domains  list,  together  with
               # “localhost”.  This is the list of domains for which this machine
@@ -60,7 +59,7 @@ class hinmail(
 		notify{"hinmail needs $hinmail::ensure server $servers": }
 	}
   if ($ensure != absent and $ensure != false) {
-    notify{"HINMAIL ensure $ensure with $packages": }
+    # notify{"HINMAIL ensure $ensure with $packages": }
     require apt
     class {"apt::backports": pin_priority  => 500 }
 #    package{['roundcube', 'roundcube-sqlite3', 'roundcube-plugins']: ensure => latest }
@@ -70,7 +69,7 @@ class hinmail(
       content => template("hinmail/dovecot_mail_conf.erb"),
       notify  => Exec['dpkg-reconfigure-exim4-config'],
       require => Package['dovecot-imapd'],
-    }   
+    }
 
     if (false) { # use apache
     require apache::params
@@ -92,14 +91,16 @@ class hinmail(
       # use nginx
     }
     if (member($packages, 'exim4-config') ) {
-        exec{'dpkg-reconfigure-exim4-config':
-          command => '/usr/sbin/dpkg-reconfigure exim4-config',
-        }
       $conf_file = '/etc/exim4/update-exim4.conf.conf'
+      exec{'dpkg-reconfigure-exim4-config':
+        command => '/usr/sbin/dpkg-reconfigure exim4-config && /usr/bin/touch /var/cache/ran_update-exim4.conf.conf',
+        subscribe => File[$dovecot_mail_conf, $conf_file],
+        creates => '/var/cache/ran_update-exim4.conf.conf',
+      }
       file{$conf_file:
         content => template("hinmail/update-exim4.conf.conf.erb"),
         notify => Exec['dpkg-reconfigure-exim4-config'],
-      }   
+      }
     }
 
     if ($fetchmailrc_lines != [] ) {
@@ -122,23 +123,21 @@ $lines
         require => Package['fetchmail'],
         notify => Service['fetchmail'],
       }
-    }    
-    add_aliases{$mail_aliases:}
+    }
   } else {
     notify{"Hinmail ensure $ensure with $packages absent": }
 #    ensure_packages($packages, { ensure => absent } )
   }
 
-  
-  define add_alias($username) {
-    file_line {"set_alias_${title}_${username}":
-      path  => '/etc/aliases',
-      line  => "${title}: $username",
-#      match => '^${title}:',
-    }
-  }
-  define add_aliases() {
-    add_alias{"add_alias-$title": username => $title}
-  }
+#   https://tobrunet.ch/2013/01/iterate-over-datastructures-in-puppet-manifests/
+  create_resources(addAlias, $mail_aliases, {})  # no default values
+
 }
 
+define addAlias($username, $aliasname) {
+  file_line {"set_alias_${title}_${username}":
+    path  => '/etc/aliases',
+    line  => "${aliasname}: ${username}",
+    match => "^${aliasname}:",
+  }
+}
