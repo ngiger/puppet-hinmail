@@ -36,11 +36,13 @@ describe 'hinmail' do
   end
 
   context 'when running with mail_aliases' do
-    let(:params) { { :ensure => true, :mail_aliases =>  { 'first' => { 'username' => 'admin', 'aliasname' => 'abuse'}, 'second' => { 'username' => 'admin', 'aliasname' => 'backup'} } } }
+    let(:params) { { :ensure => true, :mail_aliases =>  { 'abuse' => { 'username' => 'admin'}, 'backup' => { 'username' => 'admin'} } } }
     it { should compile }
     it { should compile.with_all_deps }
-    it { should contain_file_line('set_alias_first_admin') }
-    it { should contain_file_line('set_alias_second_admin') }
+    it { should contain_addalias('abuse')}
+    it { should contain_addalias('backup')}
+    it { should contain_file_line('set_alias_abuse_admin') }
+    it { should contain_file_line('set_alias_backup_admin') }
   end
 
   context 'when running with exim' do

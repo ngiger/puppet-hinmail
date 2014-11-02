@@ -134,10 +134,10 @@ $lines
 
 }
 
-define addAlias($username, $aliasname) {
+define addAlias($username) {
   file_line {"set_alias_${title}_${username}":
     path  => '/etc/aliases',
-    line  => "${aliasname}: ${username}",
-    match => "^${aliasname}:",
+    line  => "${title}: ${username}",
+    match => "^${title}:",
   }
 }

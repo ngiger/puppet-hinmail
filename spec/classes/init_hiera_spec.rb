@@ -21,7 +21,7 @@ describe 'hinmail' do
   end
 
   context 'when running with ensure and mail_aliases' do
-    let(:params) { { :ensure => true, :mail_aliases =>  { 'first' => { 'username' => 'admin', 'aliasname' => 'gyong'} } } }
+    let(:params) { { :ensure => true, :mail_aliases =>  { 'gyong' => { 'username' => 'admin'}, } } }
     it { should compile }
     it { should compile.with_all_deps }
     it { should create_class('hinmail')}
@@ -31,7 +31,7 @@ describe 'hinmail' do
     it { should contain_package('squirrelmail-locales')}
     it { should contain_package('squirrelmail')}
     it { should_not contain_package('fetchmail')}
-    it { should contain_addalias('first') }
-    it { should contain_file_line('set_alias_first_admin') }
+    it { should contain_addalias('gyong') }
+    it { should contain_file_line('set_alias_gyong_admin') }
   end
 end
